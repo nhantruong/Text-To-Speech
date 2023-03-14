@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using Microsoft.CognitiveServices.Speech;
 using SpeechLib;
 using Text_To_Speech.Assets;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Text_To_Speech
 {
@@ -118,21 +119,6 @@ namespace Text_To_Speech
                         main.Nodes.Add(new TreeNode("en-GB-RyanNeural1)"));
                         main.Nodes.Add(new TreeNode("en-GB-SoniaNeural1"));
                         main.Nodes.Add(new TreeNode("en-GB-ThomasNeural"));
-                        //main.Nodes.Add(new TreeNode("en-GB-AbbiNeural (Female)"));
-                        //main.Nodes.Add(new TreeNode("en-GB-AlfieNeural (Male)"));
-                        //main.Nodes.Add(new TreeNode("en-GB-BellaNeural (Female)"));
-                        //main.Nodes.Add(new TreeNode("en-GB-ElliotNeural (Male)"));
-                        //main.Nodes.Add(new TreeNode("en-GB-EthanNeural (Male)"));
-                        //main.Nodes.Add(new TreeNode("en -GB-HollieNeural (Female)"));
-                        //main.Nodes.Add(new TreeNode("en -GB-LibbyNeural (Female)"));
-                        //main.Nodes.Add(new TreeNode("en -GB-MaisieNeural (Female, Child)"));
-                        //main.Nodes.Add(new TreeNode("en -GB-NoahNeural (Male)"));
-                        //main.Nodes.Add(new TreeNode("en -GB-OliverNeural (Male)"));
-                        //main.Nodes.Add(new TreeNode("en -GB-OliviaNeural (Female)"));
-                        //main.Nodes.Add(new TreeNode("en -GB-RyanNeural1 (Male)"));
-                        //main.Nodes.Add(new TreeNode("en -GB-SoniaNeural1 (Female)"));
-                        //main.Nodes.Add(new TreeNode("en -GB-ThomasNeural (Male)"));
-
                         break;
                     }
                 case "English (United States)":
@@ -162,37 +148,19 @@ namespace Text_To_Speech
                         main.Nodes.Add(new TreeNode("en-US-SaraNeural"));
                         main.Nodes.Add(new TreeNode("en-US-SteffanNeural"));
                         main.Nodes.Add(new TreeNode("en-US-TonyNeural"));
-                        //main.Nodes.Add(new TreeNode("en-US-AIGenerate1Neural1(Male)"));
-                        //main.Nodes.Add(new TreeNode("en-US-AIGenerate2Neural1(Female)"));
-                        //main.Nodes.Add(new TreeNode("en-US-AmberNeural(Female)"));
-                        //main.Nodes.Add(new TreeNode("en-US-AnaNeural(Female, Child)"));
-                        //main.Nodes.Add(new TreeNode("en-US-AriaNeural(Female)"));
-                        //main.Nodes.Add(new TreeNode("en-US-AshleyNeural(Female)"));
-                        //main.Nodes.Add(new TreeNode("en-US-BrandonNeural(Male)"));
-                        //main.Nodes.Add(new TreeNode("en-US-ChristopherNeural(Male)"));
-                        //main.Nodes.Add(new TreeNode("en-US-CoraNeural(Female)"));
-                        //main.Nodes.Add(new TreeNode("en-US-DavisNeural(Male)"));
-                        //main.Nodes.Add(new TreeNode("en-US-ElizabethNeural(Female)"));
-                        //main.Nodes.Add(new TreeNode("en-US-EricNeural(Male)"));
-                        //main.Nodes.Add(new TreeNode("en-US-GuyNeural(Male)"));
-                        //main.Nodes.Add(new TreeNode("en-US-JacobNeural(Male)"));
-                        //main.Nodes.Add(new TreeNode("en-US-JaneNeural(Female)"));
-                        //main.Nodes.Add(new TreeNode("en-US-JasonNeural(Male)"));
-                        //main.Nodes.Add(new TreeNode("en-US-JennyMultilingualNeural3(Female)"));
-                        //main.Nodes.Add(new TreeNode("en-US-JennyNeural(Female)"));
-                        //main.Nodes.Add(new TreeNode("en-US-MichelleNeural(Female)"));
-                        //main.Nodes.Add(new TreeNode("en-US-MonicaNeural(Female)"));
-                        //main.Nodes.Add(new TreeNode("en-US-NancyNeural(Female)"));
-                        //main.Nodes.Add(new TreeNode("en-US-RogerNeural1(Male)"));
-                        //main.Nodes.Add(new TreeNode("en-US-SaraNeural(Female)"));
-                        //main.Nodes.Add(new TreeNode("en-US-SteffanNeural(Male)"));
-                        //main.Nodes.Add(new TreeNode("en-US-TonyNeural(Male)"));
+                        break;
+                    }
+                case "VietNamese":
+                    {
+                        main.Nodes.Add(new TreeNode("vi-VN-HoaiMyNeural"));
+                        main.Nodes.Add(new TreeNode("vi-VN-NamMinhNeural"));
                         break;
                     }
                 default:
                     break;
             }
             treeview_VoiceStyle.Nodes.Add(main);
+            treeview_VoiceStyle.CheckBoxes = true;
             treeview_VoiceStyle.ExpandAll();
 
         }
@@ -203,18 +171,53 @@ namespace Text_To_Speech
             {
                 MessageBox.Show("Copy/Paste nội dung vào hộp thoại", "Thiếu nội dung", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+            
             using (SpeechSynthesizer synthesizer = new SpeechSynthesizer(speechConfig))
             {
                 string langstyle = treeview_VoiceStyle.SelectedNode.Text;
+                if (string.IsNullOrEmpty(langstyle))
+                {
+                    MessageBox.Show("Chọn giọng nói", "Giọng nói", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                try
+                {
+                    //
+                }
+                catch (Exception)
+                {
+
+                    throw;
+                }
+                //string langstyle = treeview_VoiceStyle.SelectedNode.Text;
                 //speechConfig.SpeechRecognitionLanguage = langstyle;
                 speechConfig.SpeechSynthesisVoiceName = langstyle;
                 //speechConfig.
 
-               using (SpeechSynthesisResult result = await synthesizer.SpeakTextAsync(txtContent.Text))                
+                using (SpeechSynthesisResult result = await synthesizer.SpeakTextAsync(txtContent.Text))
                 {
-                    txtstatus.Text = $"Speech resulted in status: {result.Reason}";
+                    switch (result.Reason)
+                    {
+                        case ResultReason.SynthesizingAudioCompleted:
+                            txtstatus.Text = $"Speech resulted in status: {result.Reason}";
+                            break;
+                        case ResultReason.Canceled:
+                            var cancellation = SpeechSynthesisCancellationDetails.FromResult(result);
+                            txtstatus.Text = $"CANCELED: Reason={cancellation.Reason}";
+                            if (cancellation.Reason == CancellationReason.Error)
+                            {
+                                txtstatus.Text = $"CANCELED: ErrorCode={cancellation.ErrorCode}";
+                                txtstatus.Text = $"CANCELED: ErrorDetails=[{cancellation.ErrorDetails}]";
+                                txtstatus.Text = $"CANCELED: Did you set the speech resource key and region values?";
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                    //txtstatus.Text = $"Speech resulted in status: {result.Reason}";
                 }
             }
-        }
+        }        
+
+
     }
 }
