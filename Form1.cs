@@ -56,9 +56,10 @@ namespace Text_To_Speech
         /// <summary>
         /// Giọng tiếng anh - Mỹ
         /// </summary>
-        readonly List<string> EnglishUS = new List<string>() {"en-US-AIGenerate1Neural1","en-US-AIGenerate2Neural1","en-US-AmberNeural","en-US-AnaNeural","en-US-AriaNeural","en-US-AshleyNeural",
+        readonly List<string> EnglishUS = new List<string>() {"en-US-AmberNeural","en-US-AnaNeural","en-US-AriaNeural","en-US-AshleyNeural",
         "en-US-BrandonNeural","en-US-ChristopherNeural","en-US-CoraNeural","en-US-DavisNeural","en-US-ElizabethNeural","en-US-EricNeural","en-US-GuyNeural","en-US-JacobNeural","en-US-JaneNeural","en-US-JasonNeural","en-US-JennyMultilingualNeural3","en-US-JennyNeural","en-US-MichelleNeural","en-US-MonicaNeural","en-US-NancyNeural","en-US-RogerNeural1","en-US-SaraNeural","en-US-SteffanNeural","en-US-TonyNeural"};
 
+        //"en-US-AIGenerate1Neural1","en-US-AIGenerate2Neural1",
         /// <summary>
         /// Giọng Việt Nam
         /// </summary>
@@ -85,6 +86,14 @@ namespace Text_To_Speech
 
             //Startup            
             speechConfig.SpeechSynthesisVoiceName = "en-US-JennyNeural";
+
+            //Test
+            //var synth = new System.Speech.Synthesis.SpeechSynthesizer();
+            //synth.Rate = (int)-10;
+
+       
+            //AudioConfig af = new AudioConfig;
+
             synthesizer = new SpeechSynthesizer(speechConfig);
 
             txtContent.Text = "Constructing the steel structure for the central Skylight";
@@ -241,20 +250,48 @@ namespace Text_To_Speech
                 voicestyle = cmbVoice.SelectedItem.ToString();
                 speechConfig.SpeechSynthesisLanguage = cmbCountry.SelectedItem.ToString();
                 speechConfig.SpeechSynthesisVoiceName = voicestyle;
-
+                txtstatus.Text = "";
                 using (synthesizer = new SpeechSynthesizer(speechConfig))
                 {
                     if (btnSpeak.Text == "Speak")
                     {
                         btnSpeak.Text = "Stop";
                         btnSpeak.Enabled = false;
-                        SpeechSynthesisResult result = await synthesizer.SpeakTextAsync(txtContent.Text);
+
+                        #region SSML
+                        //string updown = trackBar_SpeakSpeed.Value >= 0 ? "+": trackBar_SpeakSpeed.Value.ToString();
+                        //double value = trackBar_SpeakSpeed.Value/10;
+                        string rate = $"{trackBar_SpeakSpeed.Value}0%";
+                        
+                        // Build an SSML prompt in a string.  
+                        string CustomStyle = "";
+                        CustomStyle += $"<speak version=\"1.0\" xmlns=\"http://www.w3.org/2001/10/synthesis\"";
+                        CustomStyle += $" xmlns:mstts=\"https://www.w3.org/2001/mstts\" xml:lang=\"en-US\">";
+ 
+                        CustomStyle += $"<voice name=\"{cmbVoice.SelectedItem}\">";
+
+                        CustomStyle += $"<mstts:express-as style=\"{cmbSpeakStyle.SelectedItem}\">";
+                        
+                        CustomStyle += $"<prosody rate=\"{rate}\">";
+                        CustomStyle += $"{txtContent.Text}";
+                        CustomStyle += $"</prosody>";
+                        CustomStyle += $"</mstts:express-as>";
+                        CustomStyle += $"</voice>";
+                        CustomStyle += $"</speak>";
+
+
+                        #endregion
+
+                        //SpeechSynthesisResult result = await synthesizer.SpeakTextAsync(txtContent.Text);
+                        SpeechSynthesisResult result = await synthesizer.SpeakSsmlAsync(CustomStyle);
+                        ErrorContent.Clear();
+                        txtstatus.Text = "";
                         switch (result.Reason)
                         {
                             case ResultReason.SynthesizingAudioCompleted:
                                 ErrorContent.Append($"Speech resulted in status: {result.Reason}");
                                 btnSpeak.Enabled = true;
-                                btnSpeak.Text = "Speak";
+                                btnSpeak.Text = "Speak";                                
                                 break;
                             case ResultReason.Canceled:
                                 var cancellation = SpeechSynthesisCancellationDetails.FromResult(result);
@@ -263,8 +300,10 @@ namespace Text_To_Speech
                                 {
                                     ErrorContent.Append($"CANCELED: ErrorCode={cancellation.ErrorCode}");
                                     ErrorContent.Append($"CANCELED: ErrorDetails=[{cancellation.ErrorDetails}]");
-                                    ErrorContent.Append($"CANCELED: Did you set the speech resource key and region values?");
-                                    btnSpeak.Text = "STOP";
+                                    MessageBox.Show($"{cancellation.ErrorDetails}","Speak Error!",MessageBoxButtons.OK,MessageBoxIcon.Error);
+                                    //ErrorContent.Append($"CANCELED: Did you set the speech resource key and region values?");
+                                    btnSpeak.Text = "Speak";
+                                    btnSpeak.Enabled = true;
                                 }
                                 break;
                             default:
@@ -289,8 +328,6 @@ namespace Text_To_Speech
             saveFileDialog.Filter = "Audio files(*.wav)| *.wav";
             saveFileDialog.InitialDirectory = @"C:\";
             saveFileDialog.RestoreDirectory = true;
-            //saveFileDialog.CheckFileExists = true;
-            //saveFileDialog.CheckPathExists = true;
 
             if (DialogResult.OK == saveFileDialog.ShowDialog(this))
             {
@@ -303,22 +340,35 @@ namespace Text_To_Speech
                 speechConfig.SpeechSynthesisVoiceName = voicestyle;
                 ErrorContent.Clear();
 
+
                 using (var speechSynthesizer = new SpeechSynthesizer(speechConfig, AudioConfig.FromWavFileOutput(filename)))
                 {
-                    SpeechSynthesisResult result = await speechSynthesizer.SpeakTextAsync(txtContent.Text);
+                    //
+                    string rate = $"{trackBar_SpeakSpeed.Value}0%";
+
+                    // Build an SSML prompt in a string.  
+                    string CustomStyle = "";
+                    CustomStyle += $"<speak version=\"1.0\" xmlns=\"http://www.w3.org/2001/10/synthesis\"";
+                    CustomStyle += $" xmlns:mstts=\"https://www.w3.org/2001/mstts\" xml:lang=\"en-US\">";
+
+                    CustomStyle += $"<voice name=\"{cmbVoice.SelectedItem}\">";
+
+                    CustomStyle += $"<mstts:express-as style=\"{cmbSpeakStyle.SelectedItem}\">";
+
+                    CustomStyle += $"<prosody rate=\"{rate}\">";
+                    CustomStyle += $"{txtContent.Text}";
+                    CustomStyle += $"</prosody>";
+                    CustomStyle += $"</mstts:express-as>";
+                    CustomStyle += $"</voice>";
+                    CustomStyle += $"</speak>";
+
+                    //
+                    //SpeechSynthesisResult result = await speechSynthesizer.SpeakTextAsync(txtContent.Text);
+                    SpeechSynthesisResult result = await speechSynthesizer.SpeakSsmlAsync(CustomStyle);
                     switch (result.Reason)
                     {
                         case ResultReason.SynthesizingAudioCompleted:
-                            ErrorContent.Append($"Speech resulted in status: {result.Reason}");
-                            //if (MessageBox.Show("File export successfully, do you want to Open to view file?", "Open Audio", MessageBoxButtons.OKCancel, MessageBoxIcon.Question) == DialogResult.OK)
-                            //{
-                            //    var FolderPath = Directory.GetParent(filename);
-                            //    if (Directory.Exists(FolderPath.))
-                            //    {
-                            //        ProcessStartInfo info = new ProcessStartInfo() { Arguments = FolderPath, FileName = "explorer.exe" };
-                            //        Process.Start(info);
-                            //    }
-                            //}
+                            ErrorContent.Append($"Speech resulted in status: {result.Reason}");                            
                             break;
                         case ResultReason.Canceled:
                             var cancellation = SpeechSynthesisCancellationDetails.FromResult(result);
@@ -333,7 +383,7 @@ namespace Text_To_Speech
                         default:
                             break;
                     }
-                    txtstatus.Text = ErrorContent.ToString();
+                    txtstatus.Text = ErrorContent.ToString();                    
                 }
             }
 
